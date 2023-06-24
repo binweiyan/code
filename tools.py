@@ -53,6 +53,7 @@ def groupbyday(pred, ground, days):
 
     #each row of days represents the date of the data
     #group the data by date
+    pred, ground, days = np.array(pred), np.array(ground), np.array(days)
     pred_group = {}
     ground_group = {}
     for i in range(len(days)):
