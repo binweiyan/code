@@ -46,14 +46,10 @@ def correlation(x, y):
     print(r.score(x_test, y_test))
     return np.corrcoef(r.predict(x_test), y_test)[0, 1]
 
-def sharp(pred, ground, days):
-    #calculate the sharpe ratio of the model, pred is the predicted return, ground is the ground truth
+def groupbyday(pred, ground, days):
+
     #pred and ground are both np.array
     #days stores the days of the data
-    #the sharpe ratio is calculated as follows:
-    #the pnl for every day is the sum of the correlation between pred and ground every day
-    #the volatility is the std of the correlation between pred and ground every day
-    #the sharpe ratio is pnl / volatility and normalized to the number of days in the data
 
     #each row of days represents the date of the data
     #group the data by date
@@ -68,5 +64,21 @@ def sharp(pred, ground, days):
     #for each date, calculate the correlation between pred and ground
     corr = np.array([np.corrcoef(pred_group[day], ground_group[day])[0, 1] for day in pred_group])
     #calculate the sharpe ratio
-    return corr.mean() / corr.std() * np.sqrt(len(corr))
+    return pred_group, ground_group, corr
     #the correlation between pred and ground every day
+
+def sharpeyear(corr, days):
+    #days is in the form of a unsorted list, each like '2016-01-01'
+    #corr is the correlation between pred and ground every day
+    #calculate the sharpe ratio of the year
+
+    #sort the days
+    days = sorted(days)
+    #calculate the sharpe ratio of every year
+    sharpe = []
+    lastyear = 0
+    for i in range(len(days) - 1):
+        if days[i][:4] != days[i + 1][:4]:
+            sharpe.append(np.mean(corr[lastyear : i + 1]) / np.std(corr[lastyear : i + 1]))
+
+    return sharpe
