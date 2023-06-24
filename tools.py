@@ -45,3 +45,28 @@ def correlation(x, y):
     print(r.score(x_train, y_train))
     print(r.score(x_test, y_test))
     return np.corrcoef(r.predict(x_test), y_test)[0, 1]
+
+def sharp(pred, ground, days):
+    #calculate the sharpe ratio of the model, pred is the predicted return, ground is the ground truth
+    #pred and ground are both np.array
+    #days stores the days of the data
+    #the sharpe ratio is calculated as follows:
+    #the pnl for every day is the sum of the correlation between pred and ground every day
+    #the volatility is the std of the correlation between pred and ground every day
+    #the sharpe ratio is pnl / volatility and normalized to the number of days in the data
+
+    #each row of days represents the date of the data
+    #group the data by date
+    pred_group = {}
+    ground_group = {}
+    for i in range(len(days)):
+        if days[i] not in pred_group:
+            pred_group[days[i]] = []
+            ground_group[days[i]] = []
+        pred_group[days[i]].append(pred[i])
+        ground_group[days[i]].append(ground[i])
+    #for each date, calculate the correlation between pred and ground
+    corr = np.array([np.corrcoef(pred_group[day], ground_group[day])[0, 1] for day in pred_group])
+    #calculate the sharpe ratio
+    return corr.mean() / corr.std() * np.sqrt(len(corr))
+    #the correlation between pred and ground every day
