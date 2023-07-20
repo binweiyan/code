@@ -15,3 +15,10 @@ parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--batch_norm', type=bool, default=False)
 
 args = parser.parse_args()
+dropout = args.dropout
+batch_norm = args.batch_norm
+batch_size = args.batch_size
+epochs = args.epochs
+lr = args.lr
+layer_num = args.layer_num
+hidden_size = args.hidden_size
