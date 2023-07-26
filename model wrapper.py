@@ -31,3 +31,12 @@ class feature_wrapper:
         mean = data.rolling(window).mean()
         std = data.rolling(window).std()
         return (data - mean) / std
+    
+#if predict is a method of model, then we can use model.predict(data)
+#else we can use model(data)
+def gen_result(model, data):
+    #use model.predict(data) or model(data) to generate result
+    if hasattr(model, 'predict'):
+        return model.predict(data)
+    else:
+        return model(data)
