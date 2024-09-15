@@ -12,6 +12,14 @@ def normalize(data, axis, mean = None, std = None):
         std = data.std(axis = axis)
     return (data - mean) / std, mean, std
 
+def denormalize(data, axis, mean = None, std = None):
+    #denormalize the data to original distribution
+    if mean is None:
+        mean = 0
+    if std is None:
+        std = 1
+    return data * std + mean
+
 def notnulldataframe(data):
     #return the rows of data that have no null values
     return data[~data.isnull().any(axis = 1)]
