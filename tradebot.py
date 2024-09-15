@@ -103,3 +103,56 @@ class fastertradebot(tradebot):
             plt.scatter(i, pnl)
             if i % 100 == 0:
                 plt.show()
+
+risk_limit_df = pd.DataFrame(columns = idx, index = ["limit"])
+risk_limit_df.loc["limit"] = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+
+class fullbot(tradebot):
+    def __init__(self, lamb, fr, Cov, grosslimit = 5e7, netlimit = 1e7):
+        super().__init__(lamb, fr, Cov)
+        self.grosslimit = grosslimit
+        self.netlimit = netlimit
+    def trade(self, alpha, price):
+        x = cp.Variable(len(alpha))
+        objective = 0.5 * self.lamb * cp.quad_form(x, self.Cov) + (self.lamb * np.dot(self.Cov, self.pos)) @ x - alpha * self.fr @ x
+        abs_terms = cp.sum(cp.abs(np.multiply(self.pos, x)))
+        objective += abs_terms
+        #limit the gross and net position, calculated in risk_limit_df
+        constraint = [cp.sum(cp.abs(cp.multiply(market_width_df.loc["width"] / price, x))) <= self.grosslimit, cp.sum(cp.abs(cp.multiply(market_width_df.loc["width"] / price, x))) <= self.netlimit]
+        problem = cp.Problem(cp.Minimize(objective), constraint)
+        problem.solve()
+        #check if cash is enough
+        if np.dot(price, x.value) > self.cash:
+            x.value = x.value * self.cash / np.dot(price, x.value)
+        #check if 
+        self.pos += x.value
+        self.cash -= np.dot(price, x.value) + np.sum(np.abs(np.multiply(market_width_df.loc["width"] / price, x.value)))
+        self.update(price)
+        returns = pd.DataFrame(columns = idx, index = ret_horizon)
+        for i in range(len(ret_horizon)):
+            returns.loc[ret_horizon[i]] = self.price_record.iloc[-ret_horizon[i]:].pct_change().sum()
+        #flatten returns to a vector
+        return returns.values.flatten()
+    def generate_alpha(self, models):
+        #generate alpha by returns
+        alpha = np.zeros(len(idx))
+        returns = self.update_feature()
+        for i in range(len(idx)):
+            alpha[i] = models[idx[i]].predict(returns)
+        return alpha
+    #generate pnl graph within the process of simulation
+    def simulate(self, models, starttime = 0, endtime = -1, df):
+        plt.figure()
+        if endtime == -1:
+            endtime = len(df)
+        for i in range(starttime, endtime):
+            price = df.loc[i][idx]
+            self.update(price)
+            alpha = self.generate_alpha(models)
+            self.trade(alpha, price)
+            #generate pnl graph
+            pnl = self.cash + np.sum(self.pos)
+            plt.scatter(i, pnl)
+            if i % 100 == 0:
+                plt.show()
+        plt.show()
