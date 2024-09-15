@@ -27,7 +27,7 @@ class tradebot:
             x.value = x.value * self.cash / np.dot(price, x.value)
         #check if 
         self.pos += x.value
-        self.cash -= np.dot(price, x.value)
+        self.cash -= np.dot(price, x.value) + np.sum(np.abs(np.multiply(market_width_df.loc["width"], x.value)))
 
     def update(self, price):
         self.price_record = pd.concat([self.price_record, price], axis = 1)
