@@ -9,15 +9,16 @@ df = pd.read_csv("data.csv")
 class tradebot:
     def __init__(self, lamb, fr, Cov):
         self.lamb = lamb
-        self.information = pd.DataFrame(columns = idx, index = ["pos", "fr"])
+        self.pos = np.zeros(len(idx))
+        self.fr = fr
         self.price_record = pd.DataFrame(columns = idx, index = range(ret_horizon[-1]))
         self.cash = 1000000
         self.Cov = Cov
         
     def trade(self, alpha, price):
         x = cp.Variable(len(alpha))
-        objective = 0.5 * self.lamb * cp.quad_form(x, self.Cov) + (self.lamb * np.dot(self.Cov, self.information.loc["pos"])) @ x - alpha * self.information.loc["fr"] @ x
-        abs_terms = cp.sum(cp.abs(np.multiply(self.information.loc["pos"], x)))
+        objective = 0.5 * self.lamb * cp.quad_form(x, self.Cov) + (self.lamb * np.dot(self.Cov, self.pos)) @ x - alpha * self.fr @ x
+        abs_terms = cp.sum(cp.abs(np.multiply(self.pos, x)))
         objective += abs_terms
         problem = cp.Problem(cp.Minimize(objective))
         problem.solve()
@@ -25,7 +26,7 @@ class tradebot:
         if np.dot(price, x.value) > self.cash:
             x.value = x.value * self.cash / np.dot(price, x.value)
         #check if 
-        self.information.loc["pos"] += x.value
+        self.pos += x.value
         self.cash -= np.dot(price, x.value)
 
     def update(self, price):
