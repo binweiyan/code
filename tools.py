@@ -116,3 +116,5 @@ def remore_parentheses(string):
     if "(" not in string:
         return string
     return string[string.find("(") + 1 : string.find(")")]
+
+time_horizon = ['1m', '3m', '10m', '30m', '1h', '2h', '7h', 'eod']
