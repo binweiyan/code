@@ -36,7 +36,8 @@ def sec_to_hms(sec):
     minute = int(sec) // 60
     hour = minute // 60
     minute = minute % 60
-    return f'{hour}:{minute:02d}:00'
+    #padding 0
+    return str(hour).zfill(2) + ':' + str(minute).zfill(2) + ':00'
 
 def notnulldataframe(data):
     #return the rows of data that have no null values
