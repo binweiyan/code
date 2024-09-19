@@ -20,6 +20,13 @@ def denormalize(data, axis, mean = None, std = None):
         std = 1
     return data * std + mean
 
+#second to hour:min:00
+def sec_to_hms(sec):
+    minute = int(sec) // 60
+    hour = minute // 60
+    minute = minute % 60
+    return f'{hour}:{minute:02d}:00'
+
 def notnulldataframe(data):
     #return the rows of data that have no null values
     return data[~data.isnull().any(axis = 1)]
