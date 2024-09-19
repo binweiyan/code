@@ -20,6 +20,17 @@ def denormalize(data, axis, mean = None, std = None):
         std = 1
     return data * std + mean
 
+def littlefr(x, y):
+    x = np.array(x)
+    y = np.array(y)
+    return x @ y / x @ x
+
+def bigFR(x, y):
+    x = np.array(x)
+    y = np.array(y)
+    return x @ y / np.sqrt(x @ x)
+
+
 #second to hour:min:00
 def sec_to_hms(sec):
     minute = int(sec) // 60
