@@ -110,3 +110,9 @@ def sharpeyear(corr, days):
             sharpe.append(np.mean(corr[lastyear : i + 1]) / np.std(corr[lastyear : i + 1]))
 
     return sharpe
+
+def remore_parentheses(string):
+    #extract the string in the parentheses
+    if "(" not in string:
+        return string
+    return string[string.find("(") + 1 : string.find(")")]
