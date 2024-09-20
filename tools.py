@@ -117,4 +117,27 @@ def remore_parentheses(string):
         return string
     return string[string.find("(") + 1 : string.find(")")]
 
-time_horizon = ['1m', '3m', '10m', '30m', '1h', '2h', '7h', 'eod']
+#format LQ_tdvol_so_wgt_exec
+def phrase(string):
+    data = string.split('_')
+    returns = []
+    index = 2
+    #check if so or Ts
+    if data[index] == 'so':
+        returns.append('so')
+    else:
+        returns.append('Ts')
+    index += 1
+    #check if wgt or ''
+    if data[index] == 'wgt':
+        returns.append('wgt')
+        index += 1
+    else:
+        returns.append('')
+    #check if exec or ''
+    if data[index] == 'exec':
+        returns.append('exec')
+    else:
+        returns.append('')
+    
+    return data
