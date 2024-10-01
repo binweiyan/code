@@ -140,4 +140,4 @@ def phrase(string):
     else:
         returns.append('')
     
-    return data
+    return returns
