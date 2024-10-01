@@ -65,7 +65,7 @@ def todf():
     global all
     return pd.DataFrame(all)
 
-def correlation(x, y):
+def fit_correlation(x, y):
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2)
     r = Ridge()
     r.fit(x_train, y_train)
@@ -141,3 +141,8 @@ def phrase(string):
         returns.append('')
     
     return returns
+
+def correlation(x, y):
+    x = np.array(x)
+    y = np.array(y)
+    return x @ y / np.sqrt(x @ x) / np.sqrt(y @ y)
