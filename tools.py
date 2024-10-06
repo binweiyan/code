@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 #data is in the form of a DataFrame
 def normalize(data, axis, mean = None, std = None):
     #normalize the data to normal distribution
@@ -146,3 +148,25 @@ def correlation(x, y):
     x = np.array(x)
     y = np.array(y)
     return x @ y / np.sqrt(x @ x) / np.sqrt(y @ y)
+
+def plotquantile(X, Y, quantile = 10):
+    #X is a np.array with shape (samples)
+    #Y is a np.array with shape (samples)
+    #the x label is the quantile of X
+    #plot the error bar of Y
+
+    #the quantile of X
+    X_quantile = np.quantile(X, np.linspace(0, 1, quantile))
+
+    #cat X,Y into a dataframe
+    data = pd.DataFrame({'X': X, 'Y': Y})
+    #add a column of quantile of X
+    data['X_quantile'] = pd.cut(data['X'], X_quantile,duplicates='drop')
+    #group by the quantile of X
+    mean = data.groupby('X_quantile').mean()
+    std = data.groupby('X_quantile').std()
+    count = data.groupby('X_quantile').count()
+    #plot the error bar of Y, dot size 2
+    plt.errorbar(mean['X'], mean['Y'], yerr = std['Y']/np.sqrt(count['Y']), fmt='o', markersize=2)
+    print((std['Y']/np.sqrt(count['Y'])).mean())
+    plt.show()
