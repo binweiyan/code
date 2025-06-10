@@ -1,21 +1,21 @@
-#generate ema on an xarray object on dimension D with hl 1, 3, 5, 10
 import numpy as np
 import pandas as pd
 import xarray as xr
 
-# --- 1. toy data -------------------------------------------------------------
-N = 20                           # length of the demo series
-da = xr.DataArray(
-    np.random.randn(N),
-    coords={"D": np.arange(N)},
-    dims="D",
+# --- 0. demo 4-D array -------------------------------------------------------
+S, D, E, V1 = 2, 20, 3, 5                 # arbitrary shapes
+data = xr.DataArray(
+    np.random.randn(S, D, E, V1),
+    coords={"S": np.arange(S),
+            "D": np.arange(D),
+            "E": np.arange(E),
+            "V1": np.arange(V1)},
+    dims=("S", "D", "E", "V1"),
     name="price",
 )
-# da.shape -> (20,)  with dim "D"
 
-# --- 2. helper to compute EMA on one 1-D slice -------------------------------
+# --- 1. 1-D helper (unchanged) ----------------------------------------------
 def _ema_1d(arr, hl):
-    """Return EMA of a 1-D NumPy array using pandas’ ewm."""
     return (
         pd.Series(arr)
         .ewm(halflife=hl, adjust=False)
@@ -24,21 +24,32 @@ def _ema_1d(arr, hl):
     )
 
 def ema_da(da, *, hl, dim="D"):
-    """Vectorised EMA for an xarray DataArray along *dim*."""
     return xr.apply_ufunc(
-        _ema_1d,                       # the function to apply
-        da,                            # first (only) argument
-        kwargs={"hl": hl},             # pass half-life
-        input_core_dims=[[dim]],       # treat *dim* as a 1-D core
-        output_core_dims=[[dim]],      # same shape back
-        vectorize=True,                # loop over all other dims
-        dask="parallelized",           # works on dask-backed arrays too
-        output_dtypes=[da.dtype],      # preserve dtype
+        _ema_1d,
+        da,
+        kwargs={"hl": hl},
+        input_core_dims=[[dim]],
+        output_core_dims=[[dim]],
+        vectorize=True,            # loops over S, E, V1 automatically
+        dask="parallelized",
+        output_dtypes=[da.dtype],
     )
 
-# --- 3. add EMA variables with the requested half-lives ----------------------
-for hl in (1, 3, 5, 10):
-    da[f"ema_hl{hl}"] = ema_da(da, hl=hl)
+# --- 2. compute the four EMAs -----------------------------------------------
+hls = [1, 3, 5, 10]
 
-# --- 4. view result ----------------------------------------------------------
-print(da)
+# Option A – put them side-by-side under a new HL coordinate
+ema_stack = xr.concat(
+    [ema_da(data, hl=h) for h in hls],
+    dim=xr.IndexVariable("HL", hls)
+)
+# dims: ("HL", "S", "D", "E", "V1")
+
+# Option B – keep separate variables in a Dataset
+ds = data.to_dataset(name="price")
+for h in hls:
+    ds[f"price_ema_hl{h}"] = ema_da(data, hl=h)
+
+# Choose whichever layout you prefer:
+# * `ema_stack` keeps everything as one DataArray with an extra HL axis.
+# * `ds` keeps a clean Dataset with one variable per half-life.
